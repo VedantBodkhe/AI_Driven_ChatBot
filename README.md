@@ -1,35 +1,35 @@
-# AI_Driven_ChatBot
+# 🤖 **AI_Driven_ChatBot** 💬
 
-This project is an AI chatbot that uses the Gemini API from Google. It's designed for educational purposes, providing a practical example of how to implement a chatbot using the Gemini API.
+Welcome to the **AI_Driven_ChatBot** project! This chatbot uses the Gemini API from Google and is designed for educational purposes. It's a practical example of how to implement a chatbot using the Gemini API. 🚀
 
-## Features
+## 🌟 Features
 
-- Multi-Conversation: Handles multiple conversations simultaneously.
-- User and Model Roles: Distinguishes between user prompts and model responses.
-- Streaming: Supports streaming for faster interactions.
+- **Multi-Conversation**: 🗣️ Handles multiple conversations simultaneously.
+- **User and Model Roles**: 👤🤖 Distinguishes between user prompts and model responses.
+- **Streaming**: ⚡ Supports streaming for faster interactions.
 
-## Dependencies
+## 📦 Dependencies
 
-- React
-- Vite
-- Tailwind
-- Chakra UI
-- React Markdown
-- @google/generative-ai
+To run this project, you’ll need the following dependencies:
 
-## API Key
+- React ⚛️
+- Vite ⚡
+- Tailwind CSS 🧑‍🎨
+- Chakra UI 💅
+- React Markdown 📝
+- @google/generative-ai 🌐
 
-To run this project, you'll need an API key from Google. You can get one for free at [Google AI](https://ai.google.dev/). The free API key has the following limitations:
-- Rate Limit: Up to 60 queries per minute.
-- Data Usage: Used to improve Google's products.
+## 🔑 API Key
 
-## Usage
+To run this project, you'll need an API key from Google. You can get one for free at [Google AI](https://ai.google.dev/). Keep in mind that the free API key comes with the following limitations:
 
-1. Clone the repository.
-2. Install the dependencies.
-3. Insert your API key.
-4. Run the project.
+- **Rate Limit**: ⏳ Up to 60 queries per minute.
+- **Data Usage**: 📊 Used to improve Google’s products.
 
-## License
+## 🚀 Usage
 
-Free to use for educational purposes.
+Follow these simple steps to get the project up and running:
+
+1. Clone the repository 🖥️
+   ```bash
+   git clone https://github.com/VedantBodkhe/AI_Driven_ChatBot.git
