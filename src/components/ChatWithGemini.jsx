@@ -76,7 +76,7 @@ const ChatWithGemini = () => {
                         }}
                         variant={'unstyled'}
                     />
-    
+
                     <Box className="flex gap-2 flex-col">
                         <Button colorScheme="whatsapp" h="1.75rem" size="sm" onClick={handleSend} rightIcon={<ArrowForwardIcon />}>
                             Send
@@ -112,7 +112,7 @@ const Introduction = () => {
             <TextRenderer value="Welcome to LifePath Navigator" size="xxx-large" />
             <TextRenderer value="I'm Here, a chatbot that can help you with your queries" direction={'l'} />
         </Box>
-        <Box className="flex flex-col items-center justify-center"> 
+        <Box className="flex flex-col items-center justify-center">
             <TextRenderer value="Type a message to get started" />
         </Box>
     </Box>
