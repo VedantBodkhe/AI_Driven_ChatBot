@@ -1,45 +1,55 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import GeminiService from "../service/gemini.service";
 
-export default function useGemini() {
+function checkForMessages() {
+    const savedMessages = localStorage.getItem("messages");
+    return savedMessages ? JSON.parse(savedMessages) : [];
+}
 
-    const [messages, updateMessage] = useState(checkForMessages());    
+export default function useGemini() {
+    const [messages, updateMessage] = useState(() => checkForMessages());
     const [loading, setLoading] = useState(false);
 
-    function checkForMessages() {
-        const savedMessages = localStorage.getItem('messages');
-        return savedMessages ? JSON.parse(savedMessages) : []
-    }
-
     useEffect(() => {
-        const saveMessages = () => localStorage.setItem('messages', JSON.stringify(messages));
-        window.addEventListener('beforeunload', saveMessages);
-        return () => window.removeEventListener('beforeunload', saveMessages);
+        localStorage.setItem("messages", JSON.stringify(messages));
     }, [messages]);
 
-    const sendMessages = async (payload) => {
-        updateMessage((prevMessages) => [...prevMessages, { "role": "model", "parts": [{ "text": "" }] }])
-        setLoading(true)
+    const sendMessages = useCallback(async (payload) => {
+        updateMessage((prevMessages) => [
+            ...prevMessages,
+            { role: "model", parts: [{ text: "" }] }
+        ]);
+
+        setLoading(true);
         try {
-            console.log("message", payload)
+            console.log("Sending message:", payload);
             const stream = await GeminiService.sendMessages(payload.message, payload.history);
-            setLoading(false)
+
+            let newMessage = { role: "model", parts: [{ text: "" }] };
+
             for await (const chunk of stream) {
-                const chuckText = chunk.text();
+                const chunkText = chunk.text();
+                newMessage.parts[0].text += chunkText;
+
                 updateMessage((prevMessages) => {
-                    const prevMessageClone = structuredClone(prevMessages);
-                    prevMessageClone[prevMessages.length - 1].parts[0].text += chuckText;
-                    return prevMessageClone;
-                })
+                    const updatedMessages = [...prevMessages];
+                    updatedMessages[updatedMessages.length - 1] = newMessage;
+                    return updatedMessages;
+                });
             }
         } catch (error) {
-            updateMessage([...messages, { "role": "model", "parts": [{ "text": "Seems like I'm having trouble connecting to the server. Please try again later." }] }])
-            console.error('An error occurred:', error);
+            console.error("Error occurred:", error);
+            updateMessage((prevMessages) => [
+                ...prevMessages,
+                {
+                    role: "model",
+                    parts: [{ text: "I'm having trouble connecting to the server. Please try again later." }]
+                }
+            ]);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    }, []);
 
-    return { messages, loading, sendMessages, updateMessage }
-
+    return { messages, loading, sendMessages, updateMessage };
 }

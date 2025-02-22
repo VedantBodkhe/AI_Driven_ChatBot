@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Input, Box, InputGroup, InputRightElement, Button, Textarea, Text } from "@chakra-ui/react";
-import { DeleteIcon, ArrowForwardIcon } from '@chakra-ui/icons';
-import { motion } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
+import { motion } from "framer-motion";
+import gsap from "gsap";
+import { Textarea } from "@chakra-ui/react";
+import { ArrowUpCircle, Mic, Trash2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import useGemini from "../hooks/useGemini";
-import "./Chat.css";
 
 const ChatWithGemini = () => {
     const { messages, loading, sendMessages, updateMessage } = useGemini();
-    const [input, setInput] = useState('');
+    const [input, setInput] = useState("");
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef(null);
+    const chatRef = useRef(null);
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -19,16 +20,9 @@ const ChatWithGemini = () => {
             recognitionRef.current.continuous = true;
             recognitionRef.current.interimResults = true;
             recognitionRef.current.lang = "en-US";
-    
-            let finalTranscript = "";
-            let resetInput = false;
-    
+
             recognitionRef.current.onresult = (event) => {
-                if (resetInput) {
-                    finalTranscript = "";  // Reset transcript after sending
-                    resetInput = false;
-                }
-    
+                let finalTranscript = "";  // Reset final transcript on each recognition event
                 let interimTranscript = "";
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
@@ -39,26 +33,21 @@ const ChatWithGemini = () => {
                 }
                 setInput(finalTranscript + interimTranscript);
             };
-    
-            recognitionRef.current.onerror = (event) => {
-                console.error("Speech recognition error:", event.error);
-                setIsListening(false);
-            };
-        } else {
-            console.error("Speech Recognition not supported in this browser.");
+            recognitionRef.current.onerror = () => setIsListening(false);
         }
-    
-        return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
-        };
-    }, []);    
-    
+        return () => recognitionRef.current?.stop();
+    }, []);
+
+    useEffect(() => {
+        gsap.fromTo(chatRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 });
+    }, [messages]);
+
+    useEffect(() => {
+        chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
+    }, [messages]);
 
     const handleVoiceInput = () => {
         if (!recognitionRef.current) return;
-
         if (isListening) {
             recognitionRef.current.stop();
             setIsListening(false);
@@ -68,192 +57,80 @@ const ChatWithGemini = () => {
         }
     };
 
-    const handleSend = async () => {
-        if (!input) return;
-    
-        const messageToSend = input;  // Save the current input
-        setInput('');                // Clear the input field
+    const handleSend = () => {
+        if (!input.trim()) return;
+        const messageToSend = input.trim();
+        setInput("");
         updateMessage([...messages, { role: "user", parts: [{ text: messageToSend }] }]);
         sendMessages({ message: messageToSend, history: messages });
-    
-        // Reset the speech recognition input
-        if (recognitionRef.current) {
-            recognitionRef.current.onresult = (event) => {
-                finalTranscript = "";  // Ensure the input is reset
-            };
-        }
-    
-        // Continue listening if it's active
-        if (isListening) {
-            handleVoiceInput();
-        }
-    };
-    
-
-    const AlwaysScrollToBottom = () => {
-        const elementRef = useRef();
-        useEffect(() => elementRef.current.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' }));
-        return <div ref={elementRef} />;
+        if (isListening) handleVoiceInput();
     };
 
     return (
-        <>
-            <Box className="w-[100%] self-center max-w-[1400px] m-4 overflow-auto rounded-md h-[80%] items-center">
-                <Box className="overflow-auto px-10 py-4 flex flex-col">
-                    {messages.length > 0 ? messages.map((message, index) => (
-                        <RenderMessage
-                            loading={loading}
-                            key={index + message.role}
-                            messageLength={messages.length}
-                            message={message}
-                            msgIndex={index}
-                        />
-                    )) : <Introduction />}
-                    <AlwaysScrollToBottom />
-                </Box>
-            </Box>
+        <div className="flex flex-col items-center h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
+            <motion.div className="w-full max-w-3xl h-[75vh] overflow-y-auto bg-gray-800 rounded-lg p-4 shadow-xl"
+                ref={chatRef}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}>
+                {messages.length > 0 ? messages.map((message, index) => (
+                    <RenderMessage key={index} message={message} />
+                )) : <Introduction />}
+                {loading && <TypingIndicator />}
+            </motion.div>
 
-            <div>
-                <button className="btn" onClick={handleSend}>👨‍🎓 Guide me about studies</button>
-                <button className="btn" onClick={handleSend}>🛣️ RoadMap to get Success in Life</button>
-                <button className="btn" onClick={handleSend}>🖊️ Provide best career option</button>
-            </div>
-
-            <Box className="flex max-w-[1400px] px-10 pt-2 w-[100%] self-center">
-                <Box className="flex w-[100%] gap-2 justify-between items-center">
-                    <Textarea
-                        placeholder="Type a message or use voice input..."
-                        value={input || ""}
-                        sx={{
-                            resize: 'none',
-                            padding: '8px 14px 8px 14px',
-                            background: 'gray.700',
-                            color: 'white',
-                            _placeholder: { color: 'white' },
-                            h: '1.75rem',
-                        }}
-                        onChange={e => setInput(e.target.value)}
-                        onKeyDown={e => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSend();
-                            }
-                        }}
-                        variant={'unstyled'}
-                    />
-<<<<<<< HEAD
-
-=======
->>>>>>> 594c5d61327668c048e1e8425583a57049d2b94c
-                    <Box className="flex gap-2 flex-col">
-                        <Button colorScheme="whatsapp" h="1.75rem" size="sm" onClick={handleSend} rightIcon={<ArrowForwardIcon />}>
-                            Send
-                        </Button>
-                        <Button color="white" _hover={{ bg: "blue.500" }} variant="outline" h="1.75rem" size="sm" onClick={() => updateMessage([])} rightIcon={<DeleteIcon />}>
-                            Clear
-                        </Button>
-                        <Button
-                            colorScheme={isListening ? "red" : "blue"}
-                            h="1.75rem"
-                            size="sm"
-                            onClick={handleVoiceInput}
-                        >
-                            {isListening ? "⏹️ Stop Listening" : "🎤 Voice Input"}
-                        </Button>
-                    </Box>
-                </Box>
-            </Box>
-        </>
+            <motion.div className="flex items-center w-full max-w-3xl mt-4 p-3 bg-gray-700 rounded-lg relative shadow-lg"
+                whileHover={{ scale: 1.02 }}>
+                <Textarea
+                    placeholder="Type a message or use voice input..."
+                    value={input}
+                    className="w-full p-3 bg-transparent text-white placeholder-gray-400 focus:outline-none border border-gray-600 rounded-lg transition-all"
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+                />
+                <motion.button onClick={handleSend} className="ml-2 text-blue-500 hover:text-blue-400 transition transform hover:scale-125">
+                    <ArrowUpCircle size={28} />
+                </motion.button>
+                <motion.button onClick={handleVoiceInput} className={`ml-2 transition transform hover:scale-125 ${isListening ? "text-red-500 animate-pulse" : "text-green-400"}`}>
+                    <Mic size={28} />
+                </motion.button>
+                <motion.button onClick={() => updateMessage([])} className="ml-2 text-gray-400 hover:text-gray-300 transition transform hover:scale-125">
+                    <Trash2 size={24} />
+                </motion.button>
+            </motion.div>
+        </div>
     );
 };
 
-// Remaining components (TextRenderer, Introduction, RenderMessage) stay the same.
-const TextRenderer = ({ value = '', direction = 'r', size = 'large' }) => (
-    <Text
-        fontSize={size}
-        bgGradient={`linear(to-${direction}, blue.100, cyan.700)`}
-        bgClip="text"
-        fontWeight="bold"
-    >
-        {value}
-    </Text>
+const RenderMessage = ({ message }) => (
+    message.parts.map((part, index) => (
+        <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`p-4 my-2 max-w-xs rounded-lg shadow-md text-white ${message.role === "user" ? "bg-blue-500 self-end ml-auto" : "bg-gray-600 self-start"}`}
+            whileHover={{ scale: 1.05 }}>
+            <ReactMarkdown>{part.text}</ReactMarkdown>
+        </motion.div>
+    ))
+);
+
+const TypingIndicator = () => (
+    <motion.div className="flex space-x-2 mt-2" animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-400"></div>
+    </motion.div>
 );
 
 const Introduction = () => (
-    <Box className="flex flex-col items-center justify-center">
-        <Box className="flex flex-col items-center justify-center">
-            <TextRenderer value="Welcome to LifePath Navigator" size="xxx-large" />
-            <TextRenderer value="I'm Here, a chatbot that can help you with your queries" direction="l" />
-        </Box>
-        <Box className="flex flex-col items-center justify-center">
-            <TextRenderer value="Type a message to get started" />
-        </Box>
-    </Box>
+    <div className="flex flex-col items-center justify-center text-center py-6">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-teal-300 text-transparent bg-clip-text">
+            Welcome to MindSync AI
+        </h2>
+        <p className="text-gray-400 mt-2">An NLP-Powered Conversational Assistant with Real-Time Intelligence</p>
+        <p className="text-gray-500 mt-1">Type a message to get started.</p>
+    </div>
 );
 
-const RenderMessage = ({ message, msgIndex, loading, messageLength }) => {
-    const { parts, role } = message;
-
-    const Loader = () => (
-        msgIndex === messageLength - 1 && loading && (
-            <Box className="flex self-start pt-2">
-                <Box bgColor="blue.500" className="dot" />
-                <Box bgColor="blue.500" className="dot" />
-                <Box bgColor="blue.500" className="dot" />
-            </Box>
-        )
-    );
-
-    return parts.map((part, index) => (
-        part.text ? (
-            <Box
-                as={motion.div}
-                className={`flex overflow-auto max-w-[95%] md:max-w-[96%] w-fit items-end my-2 p-1 px-2 rounded-md ${role === 'user' ? 'self-end' : 'self-start'}`}
-                bgColor={role === 'user' ? 'blue.500' : 'gray.200'}
-                textColor={role === 'user' ? 'white' : 'black'}
-                initial={{ opacity: 0, scale: 0.5, y: 20, x: role === 'user' ? 20 : -20 }}
-                animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
-                key={index}
-            >
-                <ReactMarkdown className="text-sm">{part.text}</ReactMarkdown>
-            </Box>
-        ) : <Loader key={index} />
-    ));
-};
-
-<<<<<<< HEAD
-    return (
-        parts.map((part, index) => part.text ?
-            <>
-                <Box
-                    as={motion.div}
-                    className={`flex overflow-auto max-w-[95%]  md:max-w-[96%] w-fit items-end my-2 p-1 px-2 rounded-md ${role === 'user' ? 'self-end' : 'self-start'}`}
-                    bgColor={role === 'user' ? 'blue.500' : 'gray.200'}
-                    textColor={role === 'user' ? 'white' : 'black'}
-                    initial={{ opacity: 0, scale: 0.5, y: 20, x: role === 'user' ? 20 : -20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
-                    key={index}
-                >
-                    <ReactMarkdown
-                        className="text-sm"
-                        key={index + part.text}
-                        components={{
-                            p: ({ node, ...props }) => <Text {...props} className="text-sm" />,
-                            code: ({ node, ...props }) => <pre
-                                {...props}
-                                className="text-sm font-mono text-white bg-slate-800 rounded-md p-2 overflow-auto m-2 "
-                            />
-                        }}
-                    >
-                        {part.text}
-                    </ReactMarkdown>
-                </Box>
-                <Loader />
-            </> : <Loader key={index + part.text} />
-        ))
-
-}
-
-=======
->>>>>>> 594c5d61327668c048e1e8425583a57049d2b94c
 export default ChatWithGemini;

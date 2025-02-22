@@ -21,3 +21,4 @@ const GeminiService = (function () {
 }());
 
 export default GeminiService;
+

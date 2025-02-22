@@ -11,14 +11,22 @@
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
-    "@chakra-ui/react": "^2.8.2",
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
+    "@chakra-ui/react": "^2.10.6",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@google/generative-ai": "^0.1.2",
-    "framer-motion": "^10.16.16",
+    "@mui/icons-material": "^6.4.5",
+    "@mui/material": "^6.4.5",
+    "framer-motion": "^10.18.0",
+    "gsap": "^3.12.7",
+    "lucide-react": "^0.475.0",
+    "mammoth": "^1.9.0",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-markdown": "^9.0.1"
+    "react-markdown": "^9.1.0",
+    "tesseract.js": "^6.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

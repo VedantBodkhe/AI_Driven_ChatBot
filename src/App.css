@@ -1,62 +1,95 @@
+/* General Styles */
 .App {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', sans-serif;
     height: 100vh;
     width: 100%;
-    max-height: none !important;
     display: flex;
     flex-direction: column;
+    background: linear-gradient(135deg, #1e1e2e, #25253e);
+    color: #ffffff;
 }
 
-/* ScrollBar CSS */
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ScrollBar Customization */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 8px;
+    background: transparent;
+}
 
 ::-webkit-scrollbar-track {
-    background-color: rgba(237, 240, 242, 0.5);
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar {
-    width: 4px;
-    height: 8px;
-    background-color: rgb(240, 240, 240);
-    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: rgb(190, 190, 190);
-    border-radius: 5px;
+    background: linear-gradient(180deg, #6d6dff, #a05aff);
+    border-radius: 6px;
 }
 
-/* Loader */
+/* Chat Bubbles */
+.user-message {
+    background: linear-gradient(135deg, #007aff, #0051ff);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 18px 18px 4px 18px;
+    max-width: 70%;
+    align-self: flex-end;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease-in-out;
+}
 
+.user-message:hover {
+    transform: scale(1.02);
+}
+
+.bot-message {
+    background: #2b2b40;
+    color: #f0f0f0;
+    padding: 12px 16px;
+    border-radius: 18px 18px 18px 4px;
+    max-width: 70%;
+    align-self: flex-start;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease-in-out;
+}
+
+.bot-message:hover {
+    transform: scale(1.02);
+}
+
+/* Loader Animation */
 .dot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     display: inline-block;
-    animation: dot-keyframes 1.4s infinite;
+    background: #6d6dff;
+    animation: dot-keyframes 1s infinite ease-in-out;
 }
 
-.dot:nth-child(1) {
-    animation-delay: 0.2s;
-}
-
-.dot:nth-child(2) {
-    animation-delay: 0.4s;
-}
-
-.dot:nth-child(3) {
-    animation-delay: 0.6s;
-}
+.dot:nth-child(1) { animation-delay: 0.1s; }
+.dot:nth-child(2) { animation-delay: 0.3s; }
+.dot:nth-child(3) { animation-delay: 0.5s; }
 
 @keyframes dot-keyframes {
-
-    0%,
-    80%,
-    100% {
-        transform: scale(0);
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
     }
-
     40% {
-        transform: scale(1);
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* Responsive Fix */
+@media (max-width: 480px) {
+    .user-message, .bot-message {
+        max-width: 90%;
     }
 }
