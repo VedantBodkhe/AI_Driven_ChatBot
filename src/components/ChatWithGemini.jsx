@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { Textarea } from "@chakra-ui/react";
-import { ArrowUpCircle, Mic, Trash2 } from "lucide-react";
+import { ArrowUpCircle, Mic, Trash2, Upload } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import useGemini from "../hooks/useGemini";
 
@@ -66,6 +66,19 @@ const ChatWithGemini = () => {
         if (isListening) handleVoiceInput();
     };
 
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const fileContent = e.target.result;
+            updateMessage([...messages, { role: "user", parts: [{ text: `Uploaded file: ${file.name}` }] }]);
+            sendMessages({ message: fileContent, history: messages });
+        };
+        reader.readAsText(file);
+    };
+
     return (
         <div className="flex flex-col items-center h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
             <motion.div className="w-full max-w-3xl h-[75vh] overflow-y-auto bg-gray-800 rounded-lg p-4 shadow-xl"
@@ -97,6 +110,10 @@ const ChatWithGemini = () => {
                 <motion.button onClick={() => updateMessage([])} className="ml-2 text-gray-400 hover:text-gray-300 transition transform hover:scale-125">
                     <Trash2 size={24} />
                 </motion.button>
+                <motion.label className="ml-2 text-purple-400 hover:text-purple-300 transition transform hover:scale-125 cursor-pointer">
+                    <Upload size={24} />
+                    <input type="file" className="hidden" onChange={handleFileUpload} />
+                </motion.label>
             </motion.div>
         </div>
     );

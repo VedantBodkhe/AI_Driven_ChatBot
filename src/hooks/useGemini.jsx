@@ -23,7 +23,7 @@ export default function useGemini() {
         setLoading(true);
         try {
             console.log("Sending message:", payload);
-            const stream = await GeminiService.sendMessages(payload.message, payload.history);
+            const stream = await GeminiService.sendMessages(payload.message, payload.history.slice(-5)); // Keep only last 5 messages
 
             let newMessage = { role: "model", parts: [{ text: "" }] };
 
@@ -51,5 +51,38 @@ export default function useGemini() {
         }
     }, []);
 
-    return { messages, loading, sendMessages, updateMessage };
+    // ✅ New Function for File Upload
+    const handleFileUpload = async (file) => {
+        setLoading(true);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            console.log("Uploading file:", file);
+            const response = await fetch("https://gemini-api.com/upload", {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer YOUR_GEMINI_API_KEY",
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Upload failed: ${errorData.message}`);
+            }
+
+            const data = await response.json();
+            console.log("Upload success:", data);
+
+            updateMessage((prevMessages) => [...prevMessages, { role: "bot", parts: [{ text: data.result }] }]);
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            updateMessage((prevMessages) => [...prevMessages, { role: "bot", parts: [{ text: "File processing failed." }] }]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { messages, loading, sendMessages, updateMessage, handleFileUpload };
 }
